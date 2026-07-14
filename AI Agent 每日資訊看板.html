@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Agent 每日資訊看板</title>
+<style>
+  :root{
+    --bg:#f5f7fb;
+    --card:#ffffff;
+    --ink:#1a1f36;
+    --sub:#5b6478;
+    --line:#e6e9f2;
+    --brand1:#4f46e5;
+    --brand2:#0ea5e9;
+    --brand3:#f59e0b;
+    --accent-bg1:#eef2ff;
+    --accent-bg2:#e0f2fe;
+    --accent-bg3:#fef3c7;
+    --shadow:0 2px 8px rgba(26,31,54,0.06);
+    --shadow-hover:0 8px 24px rgba(26,31,54,0.10);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang TC","Microsoft JhengHei",Helvetica,Arial,sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    line-height:1.5;
+  }
+  .wrap{max-width:1180px;margin:0 auto;padding:32px 24px 64px;}
+
+  header.top{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+    padding:28px 32px;
+    background:linear-gradient(135deg,#4f46e5 0%,#0ea5e9 100%);
+    border-radius:20px;
+    color:#fff;
+    margin-bottom:28px;
+    box-shadow:var(--shadow);
+  }
+  header.top h1{
+    margin:0;
+    font-size:26px;
+    font-weight:800;
+    letter-spacing:0.5px;
+  }
+  header.top .sub{
+    font-size:13px;
+    opacity:0.9;
+    margin-top:4px;
+  }
+  header.top .date-badge{
+    background:rgba(255,255,255,0.18);
+    padding:10px 18px;
+    border-radius:999px;
+    font-size:14px;
+    font-weight:600;
+    white-space:nowrap;
+    backdrop-filter:blur(4px);
+  }
+
+  .search-bar{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:10px 16px;
+    margin-bottom:28px;
+    box-shadow:var(--shadow);
+  }
+  .search-bar input{
+    flex:1;
+    border:none;
+    outline:none;
+    font-size:15px;
+    background:transparent;
+    color:var(--ink);
+  }
+  .search-bar input::placeholder{color:#9aa2b8;}
+  .search-bar .icon{font-size:16px;color:#9aa2b8;}
+  .count-tag{
+    font-size:12px;
+    color:var(--sub);
+    padding:4px 10px;
+    background:var(--bg);
+    border-radius:999px;
+  }
+
+  section.block{margin-bottom:34px;}
+  .block-head{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:14px;
+  }
+  .block-head .dot{
+    width:10px;height:10px;border-radius:50%;
+  }
+  .block-head h2{
+    font-size:19px;
+    margin:0;
+    font-weight:700;
+  }
+  .block-head .n{
+    font-size:12px;
+    color:var(--sub);
+    background:var(--bg);
+    padding:2px 10px;
+    border-radius:999px;
+    border:1px solid var(--line);
+  }
+
+  .cards{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(320px,1fr));
+    gap:16px;
+  }
+  .card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:18px 20px;
+    box-shadow:var(--shadow);
+    transition:transform .15s ease, box-shadow .15s ease;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  .card:hover{
+    transform:translateY(-3px);
+    box-shadow:var(--shadow-hover);
+  }
+  .card .meta{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+  .card .source{
+    font-size:12px;
+    font-weight:700;
+    padding:3px 10px;
+    border-radius:999px;
+  }
+  .card .date{
+    font-size:12px;
+    color:var(--sub);
+    font-variant-numeric:tabular-nums;
+  }
+  .card h3{
+    margin:0;
+    font-size:16px;
+    font-weight:700;
+    line-height:1.4;
+  }
+  .card h3 a{
+    color:var(--ink);
+    text-decoration:none;
+  }
+  .card h3 a:hover{
+    color:var(--brand1);
+    text-decoration:underline;
+  }
+  .card p{
+    margin:0;
+    font-size:13.5px;
+    color:var(--sub);
+  }
+
+  .block1 .source{background:var(--accent-bg1);color:var(--brand1);}
+  .block2 .source{background:var(--accent-bg2);color:#0369a1;}
+  .block3 .source{background:var(--accent-bg3);color:#b45309;}
+
+  .block1 .block-head .dot{background:var(--brand1);}
+  .block2 .block-head .dot{background:var(--brand2);}
+  .block3 .block-head .dot{background:var(--brand3);}
+
+  .empty{
+    padding:32px;
+    text-align:center;
+    color:var(--sub);
+    background:var(--card);
+    border:1px dashed var(--line);
+    border-radius:16px;
+    font-size:14px;
+  }
+
+  footer{
+    text-align:center;
+    font-size:12px;
+    color:#9aa2b8;
+    margin-top:20px;
+  }
+
+  @media (max-width:600px){
+    header.top{flex-direction:column;align-items:flex-start;}
+    .wrap{padding:20px 14px 48px;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div>
+      <h1>AI Agent 每日資訊看板</h1>
+      <div class="sub">彙整過去 7 天內 AI Agent 相關最新動態</div>
+    </div>
+    <div class="date-badge">資料更新日期：2026-07-14</div>
+  </header>
+
+  <div class="search-bar">
+    <span class="icon">🔍</span>
+    <input type="text" id="searchInput" placeholder="搜尋標題、來源或摘要關鍵字…">
+    <span class="count-tag" id="countTag">符合 0 則</span>
+  </div>
+
+  <section class="block block1">
+    <div class="block-head">
+      <span class="dot"></span>
+      <h2>各家推出的技術更新</h2>
+      <span class="n">OpenAI・Google Gemini・Claude・Openclaw</span>
+    </div>
+    <div class="cards" id="block1"></div>
+  </section>
+
+  <section class="block block2">
+    <div class="block-head">
+      <span class="dot"></span>
+      <h2>各媒體的試用心得</h2>
+      <span class="n">媒體 / YouTuber 教學與技巧</span>
+    </div>
+    <div class="cards" id="block2"></div>
+  </section>
+
+  <section class="block block3">
+    <div class="block-head">
+      <span class="dot"></span>
+      <h2>新產品的介紹</h2>
+      <span class="n">新工具、新應用、安裝技巧</span>
+    </div>
+    <div class="cards" id="block3"></div>
+  </section>
+
+  <footer>由排程任務自動產生・下次更新：每日早上 7:30</footer>
+</div>
+
+<script>
+const DATA = {
+  block1: [
+    {title:"Google正式推出Gemini 3", source:"Google Blog", date:"2026-07-10", summary:"Google全面開放Gemini 3，登陸Gemini App、AI Studio與Vertex AI，多模態推理能力大幅提升，Deep Think模式即將推出。", url:"https://blog.google/products/gemini/gemini-3/"},
+    {title:"OpenAI推出ChatGPT Work：GPT-5.6驅動的職場代理平台", source:"Forbes", date:"2026-07-09", summary:"ChatGPT Work可整合應用程式與檔案脈絡，自動產出文件、簡報與網站，並可在使用者離線時持續執行專案。", url:"https://www.forbes.com/sites/madhulika-pathak/2026/07/09/openai-debuts-chatgpt-work-workplace-ai-agent-with-gpt-56/"},
+    {title:"xAI發布Grok 4.5，主打Opus級代理編碼能力", source:"TechCrunch", date:"2026-07-08", summary:"Grok 4.5以真實Cursor開發session資料訓練，價格較Opus 4.8低逾六成，登陸Cursor全方案與SpaceXAI主控台。", url:"https://techcrunch.com/2026/07/08/spacexai-releases-grok-4-5-which-elon-describes-as-an-opus-class-model/"},
+    {title:"OpenClaw推出2026.7.1重大版本更新", source:"OpenClaw Changelog", date:"2026-07（約）", summary:"新增Claude Sonnet 5等多模型支援、重新設計Control UI與原生macOS聊天介面，並強化行動裝置離線與語音功能。", url:"https://www.gradually.ai/en/changelogs/openclaw/"}
+  ],
+  block2: [
+    {title:"Gemini 3 Pro動手實測：新任「資深工程師」表現亮眼", source:"Cybernews", date:"2026-07-11", summary:"實測發現Gemini 3 Pro在前端開發與推理任務表現突出，但回應延遲較長、Ultra方案訂閱費用偏高。", url:"https://cybernews.com/ai-tools/gemini-3-pro-review-hands-on-review/"},
+    {title:"Claude Sonnet 5 vs Opus 4.8 代理編碼實測評比出爐", source:"MarkTechPost", date:"2026-07-13", summary:"評測比較Sonnet 5、Sonnet 4.6與Opus 4.8的代理編碼基準與定價，Sonnet 5在SWE-bench Pro達63.2%，逼近Opus等級表現。", url:"https://www.marktechpost.com/2026/07/13/anthropic-claude-sonnet-5-vs-sonnet-4-6-vs-opus-4-8-agentic-coding-benchmarks-api-pricing-and-cost-performance-tradeoffs-compared/"},
+    {title:"業界反應熱烈：Salesforce執行長讚Gemini 3「回不去了」", source:"HF Financial", date:"2026-07-11", summary:"多位早期試用者形容Gemini 3反應更快、推理更強，Salesforce執行長Benioff公開表示改善程度「驚人」。", url:"https://www.hffinancial.com/gemini-3-reactions-and-us-ai-spending"},
+    {title:"Grok 4.5評測：性價比高但生態仍待成熟", source:"eesel AI", date:"2026-07-09", summary:"評測指出Grok 4.5輸出定價僅Opus的四成，代理編碼能力名列前茅，但周邊工具與社群生態仍在追趕中。", url:"https://www.eesel.ai/blog/grok-4-5-review"},
+    {title:"Every.to實測Gemini 3 Pro：可靠且帶點驚喜的工作夥伴", source:"Every.to", date:"2026-07-10", summary:"評測認為Gemini 3 Pro在日常任務中表現穩定、寫作語氣更自然，是一款可靠的「工作馬」等級模型。", url:"https://every.to/vibe-check/vibe-check-gemini-3-pro-a-reliable-workhorse-with-surprising-flair"}
+  ],
+  block3: [
+    {title:"Meta推出Muse Spark 1.1，首款付費代理模型API", source:"TechCrunch", date:"2026-07-09", summary:"Muse Spark 1.1具備百萬token上下文與強化工具使用能力，開放公開預覽並提供20美元免費額度試用。", url:"https://techcrunch.com/2026/07/09/meta-enters-the-crowded-ai-coding-battle-with-muse-spark-1-1/"},
+    {title:"Grok 4.5登陸Cursor全方案，主打低價代理編碼", source:"TechCrunch", date:"2026-07-08", summary:"Grok 4.5以每百萬token 2／6美元定價切入市場，較Opus 4.8便宜逾六成，率先開放Cursor所有訂閱方案使用。", url:"https://techcrunch.com/2026/07/08/spacexai-releases-grok-4-5-which-elon-describes-as-an-opus-class-model/"},
+    {title:"AWS Summit New York 2026公布多項AI代理新功能", source:"About Amazon", date:"2026-07（約）", summary:"AWS在紐約高峰會發表多項AI Agent新工具與服務更新，聚焦企業級代理自動化與跨系統協作能力。", url:"https://www.aboutamazon.com/news/aws/aws-summit-nyc-2026-ai-agents"},
+    {title:"Claude桌面版推出Linux測試版", source:"OMG! Ubuntu", date:"2026-06-30", summary:"Anthropic釋出Claude Desktop for Linux測試版，支援Ubuntu 22.04與Debian 12以上系統，整合Chat、Cowork與Claude Code。", url:"https://www.omgubuntu.co.uk/2026/07/claude-desktop-linux-beta"},
+    {title:"OpenClaw新增Apple Watch語音與Telegram Codex配對功能", source:"OpenClaw Changelog", date:"2026-07（約）", summary:"2026.7.1更新讓使用者可透過Apple Watch口述訊息並聽取回覆，Telegram也能直接啟動並操控Codex任務。", url:"https://www.gradually.ai/en/changelogs/openclaw/"}
+  ]
+};
+
+function renderBlock(id){
+  const el = document.getElementById(id);
+  const items = DATA[id];
+  if(!items || items.length === 0){
+    el.parentElement.querySelector('.cards').outerHTML = '<div class="empty">本週暫無新消息</div>';
+    return;
+  }
+  el.innerHTML = items.map(it => `
+    <div class="card" data-search="${(it.title+' '+it.source+' '+it.summary).toLowerCase()}">
+      <div class="meta">
+        <span class="source">${it.source}</span>
+        <span class="date">${it.date}</span>
+      </div>
+      <h3><a href="${it.url}" target="_blank" rel="noopener">${it.title}</a></h3>
+      <p>${it.summary}</p>
+    </div>
+  `).join('');
+}
+
+['block1','block2','block3'].forEach(renderBlock);
+
+const totalCount = Object.values(DATA).reduce((s,a)=>s+a.length,0);
+document.getElementById('countTag').textContent = `共 ${totalCount} 則`;
+
+document.getElementById('searchInput').addEventListener('input', (e)=>{
+  const q = e.target.value.trim().toLowerCase();
+  let visible = 0;
+  document.querySelectorAll('.card').forEach(card=>{
+    const match = card.dataset.search.includes(q);
+    card.style.display = match ? '' : 'none';
+    if(match) visible++;
+  });
+  document.getElementById('countTag').textContent = q ? `符合 ${visible} 則` : `共 ${totalCount} 則`;
+});
+</script>
+
+
+</body></html>
